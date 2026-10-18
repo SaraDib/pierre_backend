@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\AcceuilController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\DevisController;
 use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\MateriauxController;
 use App\Http\Controllers\Api\MethodeController;
@@ -23,11 +25,14 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/admin/login', [AuthController::class, 'login']);
 Route::get('/acceuil', [AcceuilController::class, 'index']);
+Route::get('/company', [CompanyController::class, 'index']);
 Route::get('/savoir-faire', [SavoirFaireController::class, 'index']);
 Route::get('/materiaux', [MateriauxController::class, 'index']);
 Route::get('/realisations', [RealisationsController::class, 'index']);
 Route::get('/methode', [MethodeController::class, 'index']);
 Route::get('/faq', [FaqController::class, 'index']);
+Route::get('/devis/section', [DevisController::class, 'getSection']);
+Route::post('/devis', [DevisController::class, 'store']);
 
 // Protected routes (Admin / Authenticated)
 Route::middleware('auth:sanctum')->group(function () {
@@ -35,6 +40,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/admin/logout', [AuthController::class, 'logout']);
+
+    // Admin Devis & Quotes Management
+    Route::get('/admin/devis/section', [DevisController::class, 'getSection']);
+    Route::post('/admin/devis/section', [DevisController::class, 'updateSection']);
+    Route::get('/admin/devis', [DevisController::class, 'index']);
+    Route::get('/admin/devis/stats', [DevisController::class, 'stats']);
+    Route::post('/admin/devis/{devi}', [DevisController::class, 'update']);
+    Route::delete('/admin/devis/{devi}', [DevisController::class, 'destroy']);
+
+    // Admin Company Settings Management
+    Route::get('/admin/company', [CompanyController::class, 'index']);
+    Route::post('/admin/company', [CompanyController::class, 'update']);
+    Route::post('/admin/company/reset', [CompanyController::class, 'reset']);
 
     // Admin Acceuil Content Management
     Route::post('/admin/acceuil', [AcceuilController::class, 'update']);
