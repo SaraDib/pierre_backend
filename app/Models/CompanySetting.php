@@ -35,7 +35,7 @@ class CompanySetting extends Model
             'intervention_zone' => 'Intervention dans tout le Maroc',
             'instagram_url' => 'https://instagram.com',
             'facebook_url' => 'https://facebook.com',
-            'linkedin_url' => 'https://linkedin.com',
+            'linkedin_url' => null,
             'maps_url' => null,
             'copyright' => '© 2026 SUTRAVOMAR STONE LUXE. Tous droits réservés.',
         ];
