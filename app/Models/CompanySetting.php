@@ -37,7 +37,7 @@ class CompanySetting extends Model
             'facebook_url' => 'https://facebook.com',
             'linkedin_url' => null,
             'maps_url' => null,
-            'copyright' => '© 2026 SUTRAVOMAR STONE LUXE. Tous droits réservés.',
+            'copyright' => '© ' . date('Y') . ' SUTRAVOMAR STONE LUXE. Tous droits réservés.',
         ];
     }
 
