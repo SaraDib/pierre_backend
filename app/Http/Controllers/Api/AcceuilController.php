@@ -56,7 +56,17 @@ class AcceuilController extends Controller
             'stat3_number' => ['nullable', 'string', 'max:50'],
             'stat3_label' => ['nullable', 'string', 'max:100'],
             'marquee_words' => ['nullable'],
+            // 'file' échoue explicitement si PHP a rejeté l'upload (upload_max_filesize dépassé)
+            'video_file' => ['nullable', 'file', 'mimetypes:video/mp4,video/webm,video/quicktime', 'max:102400'], // 100 Mo
+            'arch_image_file' => ['nullable', 'file', 'image', 'max:10240'], // 10 Mo
+        ], [
+            'video_file.uploaded' => 'La vidéo n\'a pas pu être envoyée : elle dépasse la taille maximale autorisée par le serveur (upload_max_filesize = ' . ini_get('upload_max_filesize') . ').',
+            'video_file.max' => 'La vidéo ne doit pas dépasser 100 Mo.',
+            'video_file.mimetypes' => 'La vidéo doit être au format MP4 ou WebM.',
+            'arch_image_file.uploaded' => 'L\'image n\'a pas pu être envoyée : elle dépasse la taille maximale autorisée par le serveur (upload_max_filesize = ' . ini_get('upload_max_filesize') . ').',
         ]);
+
+        unset($data['video_file'], $data['arch_image_file']);
 
         // Handle uploaded video file if present
         if ($request->hasFile('video_file')) {
