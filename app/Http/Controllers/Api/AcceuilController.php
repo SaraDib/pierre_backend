@@ -24,6 +24,9 @@ class AcceuilController extends Controller
         if (! empty($data['arch_image']) && str_starts_with($data['arch_image'], '/storage/')) {
             $data['arch_image'] = url($data['arch_image']);
         }
+        if (! empty($data['hero_image']) && str_starts_with($data['hero_image'], '/storage/')) {
+            $data['hero_image'] = url($data['hero_image']);
+        }
         if (! is_array($data['features_bar'] ?? null) || empty($data['features_bar'])) {
             $data['features_bar'] = Acceuil::defaultFeaturesBar();
         }
@@ -63,6 +66,8 @@ class AcceuilController extends Controller
             // 'file' échoue explicitement si PHP a rejeté l'upload (upload_max_filesize dépassé)
             'video_file' => ['nullable', 'file', 'mimetypes:video/mp4,video/webm,video/quicktime', 'max:102400'], // 100 Mo
             'arch_image_file' => ['nullable', 'file', 'image', 'max:10240'], // 10 Mo
+            'hero_image' => ['nullable', 'string'],
+            'hero_image_file' => ['nullable', 'file', 'image', 'max:10240'], // 10 Mo
         ], [
             'video_file.uploaded' => 'La vidéo n\'a pas pu être envoyée : elle dépasse la taille maximale autorisée par le serveur (upload_max_filesize = ' . ini_get('upload_max_filesize') . ').',
             'video_file.max' => 'La vidéo ne doit pas dépasser 100 Mo.',
@@ -70,7 +75,13 @@ class AcceuilController extends Controller
             'arch_image_file.uploaded' => 'L\'image n\'a pas pu être envoyée : elle dépasse la taille maximale autorisée par le serveur (upload_max_filesize = ' . ini_get('upload_max_filesize') . ').',
         ]);
 
-        unset($data['video_file'], $data['arch_image_file']);
+        unset($data['video_file'], $data['arch_image_file'], $data['hero_image_file']);
+
+        // Handle uploaded hero background image if present
+        if ($request->hasFile('hero_image_file')) {
+            $path = $request->file('hero_image_file')->store('images/hero', 'public');
+            $data['hero_image'] = url(Storage::url($path));
+        }
 
         // Handle uploaded video file if present
         if ($request->hasFile('video_file')) {
@@ -109,6 +120,9 @@ class AcceuilController extends Controller
         if (! empty($fresh['arch_image']) && str_starts_with($fresh['arch_image'], '/storage/')) {
             $fresh['arch_image'] = url($fresh['arch_image']);
         }
+        if (! empty($fresh['hero_image']) && str_starts_with($fresh['hero_image'], '/storage/')) {
+            $fresh['hero_image'] = url($fresh['hero_image']);
+        }
         if (! is_array($fresh['features_bar'] ?? null) || empty($fresh['features_bar'])) {
             $fresh['features_bar'] = Acceuil::defaultFeaturesBar();
         }
@@ -138,6 +152,7 @@ class AcceuilController extends Controller
             'arch_title' => 'Beige de Taza, poli',
             'arch_material' => 'travertin',
             'arch_image' => null,
+            'hero_image' => null,
             'stat1_number' => '30+',
             'stat1_label' => 'Variétés de pierres',
             'stat2_number' => '100%',
