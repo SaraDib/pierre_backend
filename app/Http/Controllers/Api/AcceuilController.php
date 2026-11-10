@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Acceuil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class AcceuilController extends Controller
@@ -30,6 +31,12 @@ class AcceuilController extends Controller
         if (! is_array($data['features_bar'] ?? null) || empty($data['features_bar'])) {
             $data['features_bar'] = Acceuil::defaultFeaturesBar();
         }
+
+        Log::info('[AcceuilController@index] Données Accueil récupérées:', [
+            'hero_image' => $data['hero_image'] ?? null,
+            'app_url' => config('app.url'),
+            'current_url' => url('/'),
+        ]);
 
         return response()->json([
             'status' => 'success',
@@ -79,8 +86,24 @@ class AcceuilController extends Controller
 
         // Handle uploaded hero background image if present
         if ($request->hasFile('hero_image_file')) {
-            $path = $request->file('hero_image_file')->store('images/hero', 'public');
-            $data['hero_image'] = url(Storage::url($path));
+            $file = $request->file('hero_image_file');
+            $path = $file->store('images/hero', 'public');
+            $generatedUrl = url(Storage::url($path));
+            $data['hero_image'] = $generatedUrl;
+
+            Log::info('[AcceuilController@update] Nouvelle hero_image uploadée:', [
+                'original_name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'stored_path' => $path,
+                'full_disk_path' => Storage::disk('public')->path($path),
+                'file_exists_on_disk' => Storage::disk('public')->exists($path),
+                'generated_url' => $generatedUrl,
+                'storage_symlink_exists' => file_exists(public_path('storage')),
+            ]);
+        } else {
+            Log::info('[AcceuilController@update] Pas de nouveau fichier hero_image_file fourni. Valeur actuelle reçue:', [
+                'hero_image' => $data['hero_image'] ?? null,
+            ]);
         }
 
         // Handle uploaded video file if present
