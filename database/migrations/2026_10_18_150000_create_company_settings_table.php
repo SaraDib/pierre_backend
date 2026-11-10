@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('whatsapp_number')->default('212600000000');
             $table->string('email')->default('contact@sutravomar-stone.ma');
             $table->string('address')->default('Atelier & Showroom, Maroc');
-            $table->string('city')->nullable()->default('Casablanca');
+            $table->string('city')->nullable()->default('Taza');
             $table->string('country')->nullable()->default('Maroc');
             $table->string('opening_hours')->nullable()->default('Lun - Sam : 08h30 - 18h30');
             $table->string('intervention_zone')->nullable()->default('Intervention dans tout le Maroc');

@@ -84,7 +84,7 @@ class FaqSeeder extends Seeder
             [
                 'category_slug' => 'fourniture-pose',
                 'question' => 'Intervenez-vous partout au Maroc ?',
-                'answer' => "Oui, nous livrons et réalisons des chantiers dans tout le Royaume : Casablanca, Rabat, Marrakech, Tanger, Fès, Agadir, etc. Nos équipes se déplacent pour la prise de cotes au laser et l'installation.",
+                'answer' => "Oui, nous livrons et réalisons des chantiers dans tout le Royaume : Taza, Rabat, Marrakech, Tanger, Fès, Agadir, etc. Nos équipes se déplacent pour la prise de cotes au laser et l'installation.",
                 'position' => 3,
                 'is_featured' => true,
                 'is_active' => true,

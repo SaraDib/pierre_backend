@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AcceuilController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CatalogMaterialController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DevisController;
 use App\Http\Controllers\Api\FaqController;
@@ -28,6 +29,8 @@ Route::get('/acceuil', [AcceuilController::class, 'index']);
 Route::get('/company', [CompanyController::class, 'index']);
 Route::get('/savoir-faire', [SavoirFaireController::class, 'index']);
 Route::get('/materiaux', [MateriauxController::class, 'index']);
+Route::get('/catalogue-materiaux', [CatalogMaterialController::class, 'index']);
+Route::get('/catalogue-materiaux/{slug}', [CatalogMaterialController::class, 'show']);
 Route::get('/realisations', [RealisationsController::class, 'index']);
 Route::get('/methode', [MethodeController::class, 'index']);
 Route::get('/faq', [FaqController::class, 'index']);
@@ -77,6 +80,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/materiaux/categories', [MateriauxController::class, 'storeCategory']);
     Route::post('/admin/materiaux/categories/{category}', [MateriauxController::class, 'updateCategory']);
     Route::delete('/admin/materiaux/categories/{category}', [MateriauxController::class, 'destroyCategory']);
+
+    // Admin Catalogue matériaux (carrousel, /detailsmateriaux, pages détail)
+    Route::get('/admin/catalogue-materiaux', [CatalogMaterialController::class, 'adminIndex']);
+    Route::post('/admin/catalogue-materiaux/section', [CatalogMaterialController::class, 'updateSection']);
+    Route::post('/admin/catalogue-materiaux/reorder', [CatalogMaterialController::class, 'reorder']);
+    Route::post('/admin/catalogue-materiaux', [CatalogMaterialController::class, 'store']);
+    Route::post('/admin/catalogue-materiaux/{item}', [CatalogMaterialController::class, 'update']);
+    Route::delete('/admin/catalogue-materiaux/{item}', [CatalogMaterialController::class, 'destroy']);
 
     // Admin Réalisations Content Management
     Route::get('/admin/realisations', [RealisationsController::class, 'adminIndex']);
