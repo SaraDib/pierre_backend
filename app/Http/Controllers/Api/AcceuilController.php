@@ -18,11 +18,14 @@ class AcceuilController extends Controller
         $acceuil = Acceuil::getSingleton();
 
         $data = $acceuil->toArray();
-        if (!empty($data['video_url']) && str_starts_with($data['video_url'], '/storage/')) {
+        if (! empty($data['video_url']) && str_starts_with($data['video_url'], '/storage/')) {
             $data['video_url'] = url($data['video_url']);
         }
-        if (!empty($data['arch_image']) && str_starts_with($data['arch_image'], '/storage/')) {
+        if (! empty($data['arch_image']) && str_starts_with($data['arch_image'], '/storage/')) {
             $data['arch_image'] = url($data['arch_image']);
+        }
+        if (! is_array($data['features_bar'] ?? null) || empty($data['features_bar'])) {
+            $data['features_bar'] = Acceuil::defaultFeaturesBar();
         }
 
         return response()->json([
@@ -56,6 +59,7 @@ class AcceuilController extends Controller
             'stat3_number' => ['nullable', 'string', 'max:50'],
             'stat3_label' => ['nullable', 'string', 'max:100'],
             'marquee_words' => ['nullable'],
+            'features_bar' => ['nullable'],
             // 'file' échoue explicitement si PHP a rejeté l'upload (upload_max_filesize dépassé)
             'video_file' => ['nullable', 'file', 'mimetypes:video/mp4,video/webm,video/quicktime', 'max:102400'], // 100 Mo
             'arch_image_file' => ['nullable', 'file', 'image', 'max:10240'], // 10 Mo
@@ -90,14 +94,23 @@ class AcceuilController extends Controller
             }
         }
 
+        // If features_bar is sent as JSON string
+        if (isset($data['features_bar']) && is_string($data['features_bar'])) {
+            $decoded = json_decode($data['features_bar'], true);
+            $data['features_bar'] = is_array($decoded) ? $decoded : Acceuil::defaultFeaturesBar();
+        }
+
         $acceuil->update($data);
 
         $fresh = $acceuil->fresh()->toArray();
-        if (!empty($fresh['video_url']) && str_starts_with($fresh['video_url'], '/storage/')) {
+        if (! empty($fresh['video_url']) && str_starts_with($fresh['video_url'], '/storage/')) {
             $fresh['video_url'] = url($fresh['video_url']);
         }
-        if (!empty($fresh['arch_image']) && str_starts_with($fresh['arch_image'], '/storage/')) {
+        if (! empty($fresh['arch_image']) && str_starts_with($fresh['arch_image'], '/storage/')) {
             $fresh['arch_image'] = url($fresh['arch_image']);
+        }
+        if (! is_array($fresh['features_bar'] ?? null) || empty($fresh['features_bar'])) {
+            $fresh['features_bar'] = Acceuil::defaultFeaturesBar();
         }
 
         return response()->json([
@@ -140,6 +153,7 @@ class AcceuilController extends Controller
                 'Sur mesure',
                 'Pose & livraison',
             ],
+            'features_bar' => Acceuil::defaultFeaturesBar(),
         ];
 
         $acceuil->update($defaults);

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DevisController;
 use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\MateriauxController;
 use App\Http\Controllers\Api\MethodeController;
+use App\Http\Controllers\Api\PourquoiChoisirController;
 use App\Http\Controllers\Api\RealisationsController;
 use App\Http\Controllers\Api\SavoirFaireController;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/admin/login', [AuthController::class, 'login']);
 Route::get('/acceuil', [AcceuilController::class, 'index']);
 Route::get('/company', [CompanyController::class, 'index']);
+Route::get('/pourquoi-choisir', [PourquoiChoisirController::class, 'index']);
 Route::get('/savoir-faire', [SavoirFaireController::class, 'index']);
 Route::get('/materiaux', [MateriauxController::class, 'index']);
 Route::get('/catalogue-materiaux', [CatalogMaterialController::class, 'index']);
@@ -60,6 +62,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin Acceuil Content Management
     Route::post('/admin/acceuil', [AcceuilController::class, 'update']);
     Route::post('/admin/acceuil/reset', [AcceuilController::class, 'reset']);
+
+    // Admin Pourquoi nous choisir Content Management
+    Route::get('/admin/pourquoi-choisir', [PourquoiChoisirController::class, 'adminIndex']);
+    Route::post('/admin/pourquoi-choisir', [PourquoiChoisirController::class, 'update']);
+    Route::post('/admin/pourquoi-choisir/reset', [PourquoiChoisirController::class, 'reset']);
 
     // Admin Savoir-faire Content Management
     Route::get('/admin/savoir-faire', [SavoirFaireController::class, 'adminIndex']);

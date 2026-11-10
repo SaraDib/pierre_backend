@@ -15,7 +15,34 @@ class Acceuil extends Model
 
     protected $casts = [
         'marquee_words' => 'array',
+        'features_bar' => 'array',
     ];
+
+    public static function defaultFeaturesBar(): array
+    {
+        return [
+            [
+                'icon' => 'star',
+                'title' => 'Pierres naturelles',
+                'subtitle' => 'Qualité supérieure garantie',
+            ],
+            [
+                'icon' => 'shield',
+                'title' => 'Savoir-faire',
+                'subtitle' => "Une équipe d'experts à votre service",
+            ],
+            [
+                'icon' => 'arrow',
+                'title' => 'Livraison & Pose',
+                'subtitle' => "Partout au Maroc et à l'international",
+            ],
+            [
+                'icon' => 'clock',
+                'title' => 'Engagement durable',
+                'subtitle' => 'Respect de la nature et des générations futures',
+            ],
+        ];
+    }
 
     /**
      * Get or initialize the singleton Acceuil content row.
@@ -51,7 +78,11 @@ class Acceuil extends Model
                     'Sur mesure',
                     'Pose & livraison',
                 ],
+                'features_bar' => self::defaultFeaturesBar(),
             ]);
+        } elseif (empty($item->features_bar)) {
+            $item->features_bar = self::defaultFeaturesBar();
+            $item->save();
         }
 
         return $item;
