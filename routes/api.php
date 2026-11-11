@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AcceuilController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CatalogCategoryController;
 use App\Http\Controllers\Api\CatalogMaterialController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DevisController;
@@ -31,7 +32,10 @@ Route::get('/company', [CompanyController::class, 'index']);
 Route::get('/pourquoi-choisir', [PourquoiChoisirController::class, 'index']);
 Route::get('/savoir-faire', [SavoirFaireController::class, 'index']);
 Route::get('/materiaux', [MateriauxController::class, 'index']);
+Route::get('/catalogue-categories', [CatalogCategoryController::class, 'index']);
+Route::get('/catalogue-categories/{slug}', [CatalogCategoryController::class, 'show']);
 Route::get('/catalogue-materiaux', [CatalogMaterialController::class, 'index']);
+Route::get('/catalogue-materiaux/{categorySlug}/{slug}', [CatalogMaterialController::class, 'showInCategory']);
 Route::get('/catalogue-materiaux/{slug}', [CatalogMaterialController::class, 'show']);
 Route::get('/realisations', [RealisationsController::class, 'index']);
 Route::get('/methode', [MethodeController::class, 'index']);
@@ -87,6 +91,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/materiaux/categories', [MateriauxController::class, 'storeCategory']);
     Route::post('/admin/materiaux/categories/{category}', [MateriauxController::class, 'updateCategory']);
     Route::delete('/admin/materiaux/categories/{category}', [MateriauxController::class, 'destroyCategory']);
+
+    // Admin Types de matériaux (Marbre, Granit, Onyx…)
+    Route::get('/admin/catalogue-categories', [CatalogCategoryController::class, 'adminIndex']);
+    Route::post('/admin/catalogue-categories/reorder', [CatalogCategoryController::class, 'reorder']);
+    Route::post('/admin/catalogue-categories', [CatalogCategoryController::class, 'store']);
+    Route::post('/admin/catalogue-categories/{category}', [CatalogCategoryController::class, 'update']);
+    Route::delete('/admin/catalogue-categories/{category}', [CatalogCategoryController::class, 'destroy']);
 
     // Admin Catalogue matériaux (carrousel, /detailsmateriaux, pages détail)
     Route::get('/admin/catalogue-materiaux', [CatalogMaterialController::class, 'adminIndex']);

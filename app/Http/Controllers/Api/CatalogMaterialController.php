@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CatalogCategory;
 use App\Models\CatalogMaterial;
 use App\Models\MateriauxSection;
 use Illuminate\Http\JsonResponse;
@@ -25,13 +26,21 @@ class CatalogMaterialController extends Controller
         return $path;
     }
 
-    private function serialize(CatalogMaterial $m): array
+    public function serialize(CatalogMaterial $m): array
     {
+        $category = $m->category;
+
         return [
             'id' => $m->id,
             'slug' => $m->slug,
             'position' => $m->position,
-            'type' => $m->type,
+            'category_id' => $m->category_id,
+            'category' => $category ? [
+                'id' => $category->id,
+                'slug' => $category->slug,
+                'name' => $category->name,
+            ] : null,
+            'type' => $category?->name ?: $m->type,
             'name' => $m->name,
             'variant' => $m->variant,
             'description' => $m->description,
@@ -54,10 +63,14 @@ class CatalogMaterialController extends Controller
         ];
     }
 
-    private function list(bool $onlyActive): array
+    private function list(bool $onlyActive, ?int $categoryId = null): array
     {
         return CatalogMaterial::query()
-            ->when($onlyActive, fn ($q) => $q->where('is_active', true))
+            ->with('category')
+            ->when($onlyActive, fn ($q) => $q->where('is_active', true)
+                ->where(fn ($q) => $q->whereNull('category_id')
+                    ->orWhereHas('category', fn ($c) => $c->where('is_active', true))))
+            ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
             ->orderBy('position')
             ->orderBy('id')
             ->get()
@@ -89,38 +102,61 @@ class CatalogMaterialController extends Controller
         ]);
     }
 
-    /** Public : détail d'un matériau par son slug + matériau précédent/suivant. */
+    /**
+     * Public (ancien lien /detailsmateriaux/{slug}) : variété par son seul slug.
+     * Le frontend s'en sert pour rediriger vers /detailsmateriaux/{type}/{slug}.
+     */
     public function show(string $slug): JsonResponse
     {
-        $items = $this->list(true);
+        $material = collect($this->list(true))->firstWhere('slug', $slug);
+
+        if (! $material) {
+            return response()->json(['status' => 'error', 'message' => 'Matériau introuvable.'], 404);
+        }
+
+        return response()->json(['status' => 'success', 'data' => $material]);
+    }
+
+    /** Public : fiche d'une variété dans son type + variété précédente/suivante du même type. */
+    public function showInCategory(string $categorySlug, string $slug): JsonResponse
+    {
+        $category = CatalogCategory::where('slug', $categorySlug)->where('is_active', true)->first();
+        if (! $category) {
+            return response()->json(['status' => 'error', 'message' => 'Type de matériau introuvable.'], 404);
+        }
+
+        $items = $this->list(true, $category->id);
         $index = collect($items)->search(fn ($m) => $m['slug'] === $slug);
 
         if ($index === false) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Matériau introuvable.',
-            ], 404);
+            return response()->json(['status' => 'error', 'message' => 'Matériau introuvable.'], 404);
         }
 
         $count = count($items);
-        $prev = $count > 1 ? $items[($index - 1 + $count) % $count] : null;
-        $next = $count > 1 ? $items[($index + 1) % $count] : null;
+        $pick = fn ($m) => $m ? ['slug' => $m['slug'], 'name' => $m['name'], 'variant' => $m['variant'], 'category' => $m['category']] : null;
 
         return response()->json([
             'status' => 'success',
             'data' => $items[$index],
-            'prev' => $prev ? ['slug' => $prev['slug'], 'name' => $prev['name'], 'variant' => $prev['variant']] : null,
-            'next' => $next ? ['slug' => $next['slug'], 'name' => $next['name'], 'variant' => $next['variant']] : null,
-            'section' => $this->sectionData(),
+            'category' => [
+                'id' => $category->id,
+                'slug' => $category->slug,
+                'name' => $category->name,
+                'count' => $count,
+            ],
+            'prev' => $count > 1 ? $pick($items[($index - 1 + $count) % $count]) : null,
+            'next' => $count > 1 ? $pick($items[($index + 1) % $count]) : null,
         ]);
     }
 
-    /** Admin : tout, y compris les matériaux masqués + en-tête de section. */
+    /** Admin : toutes les variétés (y compris masquées) + types + en-tête de section. */
     public function adminIndex(): JsonResponse
     {
         return response()->json([
             'status' => 'success',
             'data' => $this->list(false),
+            'categories' => CatalogCategory::orderBy('position')->orderBy('id')
+                ->get(['id', 'slug', 'name', 'is_active']),
             'section' => $this->sectionData(),
         ]);
     }
@@ -160,7 +196,7 @@ class CatalogMaterialController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Matériau ajouté.',
-            'data' => $this->serialize($material->fresh()),
+            'data' => $this->serialize($material->fresh('category')),
         ], 201);
     }
 
@@ -203,7 +239,7 @@ class CatalogMaterialController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Matériau mis à jour.',
-            'data' => $this->serialize($item->fresh()),
+            'data' => $this->serialize($item->fresh('category')),
         ]);
     }
 
@@ -252,6 +288,7 @@ class CatalogMaterialController extends Controller
         }
 
         $data = $request->validate([
+            'category_id' => ['required', 'integer', 'exists:catalog_categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'variant' => ['nullable', 'string', 'max:255'],
             'type' => ['nullable', 'string', 'max:100'],
@@ -275,7 +312,8 @@ class CatalogMaterialController extends Controller
             'hero_file' => ['nullable', 'image', 'max:5120'],
         ]);
 
-        $data['type'] = trim($data['type'] ?? '') !== '' ? trim($data['type']) : $data['name'];
+        // Le type affiché est toujours celui de la catégorie choisie.
+        $data['type'] = CatalogCategory::find($data['category_id'])?->name ?: $data['name'];
 
         return $data;
     }
@@ -284,7 +322,7 @@ class CatalogMaterialController extends Controller
     private function columns(array $data): array
     {
         return array_intersect_key($data, array_flip([
-            'slug', 'position', 'type', 'name', 'variant', 'description', 'image', 'hero_image',
+            'slug', 'position', 'category_id', 'type', 'name', 'variant', 'description', 'image', 'hero_image',
             'gallery', 'origin', 'finish', 'thickness', 'uses', 'maintenance', 'fallback_gradient', 'is_active',
         ]));
     }
